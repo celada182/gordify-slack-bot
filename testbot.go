@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	// "strings"
-
+	"math/rand"
 	"github.com/nlopes/slack"
 )
 
@@ -50,7 +49,7 @@ func handleMessageEvent(event *slack.MessageEvent) {
 	} else if checkCommand(event.Text, false) {
 		active=false
 		rtm.SendMessage(rtm.NewOutgoingMessage("Ok, lets have lunch!", event.Channel))
-		organizeGroups(users)
+		organizeGroups(users, event)
 	} else if isConfirmation(event.Text) {
 		users = addUser(users, event)
 	}
@@ -78,22 +77,32 @@ func addUser(users []string, event *slack.MessageEvent) []string {
 	return users
 }
 
-func organizeGroups(users []string) {
-	users = []string{"a","b","c","d","e","f","g","h","i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w"}
+func organizeGroups(users []string, event *slack.MessageEvent) {
+	//users = []string{"a","b","c","d","e","f","g","h","i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w"}
 	numberOfGroups, groupSize := getNumberOfGruops(len(users))
 	groups:=getGroups(users, numberOfGroups, groupSize)
-	fmt.Printf("END\n")
-	fmt.Printf("Gruops: %v\n", groups)
+	for index, group := range groups {
+		if (len(group) > 0){
+			groupMessage(index, group, event)
+		}
+	}
+}
+
+func groupMessage(index int, group []string, event *slack.MessageEvent) {
+	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprintf("Group %d", index + 1), event.Channel))
+	for _, user := range group {
+		rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprintf("<@%s>", user), event.Channel))
+	}
+	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprintf("Lider <@%s>", getGruopLider(group)), event.Channel))
 }
 
 func getNumberOfGruops(users int) (int, int) {
 	groupSize:= 7
 	groups:=0
 	lastGruopSize:=0
-	fmt.Printf("Users: %v\n", users)
 	for {
 		groups, lastGruopSize = divmod(users, groupSize)
-		if (lastGruopSize > 1) {
+		if (lastGruopSize > 1 || groups == 0) {
 			groups++
 		}
  		if (lastGruopSize == 0 || lastGruopSize == groupSize - 1 || lastGruopSize == 1) {
@@ -115,6 +124,14 @@ func getGroups(users []string, numberOfGroups int, groupSize int) [][]string {
 		groups = append(groups, users[start:end])
 	}
 	return groups
+}
+
+func getGruopLider(group []string) string {
+	if (len(group) == 1) {
+		return group[0]
+	}
+	index := rand.Intn(len(group) - 1)
+	return group[index]
 }
 
 func divmod(numerator, denominator int) (quotient, remainder int) {
