@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 	"math/rand"
+	"strings"
 	"github.com/nlopes/slack"
 )
 
 var command = "gordify"
 var	start = "start"
 var	stop = "stop"
-var	confirmation = "count me in"
 var	active = false
 var	users = []string{}
 var token = os.Getenv("SLACK_TOKEN")
@@ -28,7 +28,6 @@ Loop:
 			case *slack.ConnectedEvent:
 				fmt.Println("Connection counter:", ev.ConnectionCount)
 			case *slack.MessageEvent:
-				fmt.Printf("Message: %v\n", ev.Text)
 				handleMessageEvent(ev)
 			case *slack.RTMError:
 				fmt.Printf("Error: %s\n", ev.Error())
@@ -65,7 +64,9 @@ func checkCommand(message string, isStart bool) bool {
 }
 
 func isConfirmation(message string) bool {
-	return active && message == confirmation
+	info := rtm.GetInfo()
+	prefix := fmt.Sprintf("<@%s>", info.User.ID)
+	return active && strings.HasPrefix(message, prefix)
 }
 
 func addUser(users []string, event *slack.MessageEvent) []string {
@@ -79,7 +80,7 @@ func addUser(users []string, event *slack.MessageEvent) []string {
 
 func organizeGroups(users []string, event *slack.MessageEvent) {
 	//users = []string{"a","b","c","d","e","f","g","h","i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w"}
-	numberOfGroups, groupSize := getNumberOfGruops(len(users))
+	numberOfGroups, groupSize := getNumberOfGroups(len(users))
 	groups:=getGroups(users, numberOfGroups, groupSize)
 	for index, group := range groups {
 		if (len(group) > 0){
@@ -96,7 +97,7 @@ func groupMessage(index int, group []string, event *slack.MessageEvent) {
 	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprintf("Lider <@%s>", getGruopLider(group)), event.Channel))
 }
 
-func getNumberOfGruops(users int) (int, int) {
+func getNumberOfGroups(users int) (int, int) {
 	groupSize:= 7
 	groups:=0
 	lastGruopSize:=0
