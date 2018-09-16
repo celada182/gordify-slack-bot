@@ -34,8 +34,6 @@ Loop:
 			case *slack.InvalidAuthEvent:
 				fmt.Printf("Invalid credentials")
 				break Loop
-			default:
-				//Take no action
 			}
 		}
 	}
@@ -79,7 +77,6 @@ func addUser(users []string, event *slack.MessageEvent) []string {
 }
 
 func organizeGroups(users []string, event *slack.MessageEvent) {
-	//users = []string{"a","b","c","d","e","f","g","h","i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w"}
 	numberOfGroups, groupSize := getNumberOfGroups(len(users))
 	groups:=getGroups(users, numberOfGroups, groupSize)
 	for index, group := range groups {

@@ -15,3 +15,5 @@ Anyone can write the stop command: "gordify stop" to close de lunch groups.
 
 · CONFIRMATION
 Any user who want to be a part of the lunch groups needs to mention @testbot to be counted in.
+
+By Javier Celada Muñoz
